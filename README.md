@@ -20,6 +20,16 @@ Typical uses include:
 > percentages are relative scores among the supplied choices; they are **not**
 > probabilities that the answer is correct.
 
+## Real-device example
+
+<p align="center">
+  <img src="docs/images/pocketjev-demo-no.png" width="360" alt="PocketJev on iPhone answering NO to the question Is this a cat? for a photo of a fries carton">
+</p>
+
+In this iPhone example, the question is **"Is this a cat?"** and the image is a
+fries carton. PocketJev selects `NO` from `YES / NO / UNKNOWN`. The displayed
+scores are still option-relative model scores, not calibrated confidence.
+
 ## Features
 
 - Native SwiftUI iPhone app
@@ -162,6 +172,10 @@ PocketJev は、iPhone のカメラや写真を **長文生成ではなく少数
 日本語設定のiPhoneでは日本語UI、それ以外では英語UIになります。
 初期選択肢は日本語では `YES / NO / 判別不能`、それ以外では
 `YES / NO / UNKNOWN` です。
+
+上の実機スクリーンショットでは、ポテトの容器に対して「これは猫ですか？」と
+質問し、`YES / NO / 判別不能` から `NO` を選んでいます。表示値はあくまで候補内の
+相対スコアで、校正済みの正解確率ではありません。
 
 実用する場合は、いきなり「この画像は合格？」と聞くより、
 「画像端で見切れているか」「部品が何個見えるか」のような観測質問へ分解する
