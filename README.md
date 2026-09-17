@@ -108,6 +108,28 @@ In Xcode:
 For command-line builds, SwiftPM plugin/macro validation may need to be allowed
 or explicitly skipped depending on your Xcode security settings.
 
+## Prebuilt IPA
+
+GitHub Releases include a prebuilt `PocketJev-vX.Y.Z.ipa` plus its SHA-256
+checksum. The IPA is a generic Release build intended for compatible sideloading
+environments (for example TrollStore where supported); it is **not** App Store or
+TestFlight signed.
+
+- PocketJev itself requires **iOS 18+**.
+- The IPA does not contain the Qwen3-VL model weights; the model is downloaded on
+  first AI setup just like a source build.
+- The public IPA uses the stable bundle identifier `io.github.nullpojp.PocketJev`.
+- The app keeps the `com.apple.developer.kernel.increased-memory-limit` entitlement,
+  but entitlement behavior ultimately depends on the installer / device environment.
+
+To reproduce the IPA locally:
+
+```bash
+./scripts/package-ipa.sh 0.1.0
+```
+
+Output is written under `dist/` and is intentionally ignored by Git.
+
 ## Language behavior
 
 PocketJev intentionally keeps localization simple:

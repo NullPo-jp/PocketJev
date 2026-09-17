@@ -11,6 +11,7 @@ xcuserdata/
 .build/
 .swiftpm/
 build/
+dist/
 *.log
 
 # Local-only handoff / deployment helpers
