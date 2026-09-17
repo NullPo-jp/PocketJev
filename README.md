@@ -39,6 +39,9 @@ scores are still option-relative model scores, not calibrated confidence.
 - Reusable option-set dropdowns with a separate editor
 - Default `YES / NO / UNKNOWN` option set
 - 1 / 2 / 5 second continuous-decision mode without queuing stale frames
+- Continuous mode keeps the live camera visible while the captured frame animates
+  into the result area; the previous confirmed result stays visible until the next
+  decision finishes
 - Light haptic feedback after a decision
 - Japanese UI when the iPhone language is Japanese; English otherwise
 - On-device MLX inference after the model has been downloaded
@@ -125,7 +128,7 @@ TestFlight signed.
 To reproduce the IPA locally:
 
 ```bash
-./scripts/package-ipa.sh 0.1.0
+./scripts/package-ipa.sh 0.1.1
 ```
 
 Output is written under `dist/` and is intentionally ignored by Git.

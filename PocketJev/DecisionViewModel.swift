@@ -20,6 +20,8 @@ final class DecisionViewModel {
     var selectedOptionPresetID: String
 
     var result: DecisionResult?
+    var continuousResultSnapshot: ContinuousCaptureSnapshot?
+    var continuousPendingSnapshot: ContinuousCaptureSnapshot?
     var errorMessage: String?
     var isAnalyzing = false
     var continuousEnabled = false
@@ -133,8 +135,15 @@ final class DecisionViewModel {
         guard !isAnalyzing else { return }
         do {
             let image = try await camera.capture()
-            selectedImage = image
-            await analyze(image)
+            if continuousEnabled {
+                selectedImage = nil
+                let snapshot = ContinuousCaptureSnapshot(image: image)
+                continuousPendingSnapshot = snapshot
+                await analyze(image, continuousSnapshot: snapshot)
+            } else {
+                selectedImage = image
+                await analyze(image)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -164,6 +173,16 @@ final class DecisionViewModel {
         continuousEnabled = enabled
         continuousTask?.cancel()
         continuousTask = nil
+        if enabled {
+            selectedImage = nil
+            result = nil
+            continuousResultSnapshot = nil
+            continuousPendingSnapshot = nil
+        }
+        if !enabled {
+            continuousResultSnapshot = nil
+            continuousPendingSnapshot = nil
+        }
         guard enabled else { return }
 
         continuousTask = Task { [weak self] in
@@ -178,7 +197,10 @@ final class DecisionViewModel {
         }
     }
 
-    private func analyze(_ image: UIImage) async {
+    private func analyze(
+        _ image: UIImage,
+        continuousSnapshot: ContinuousCaptureSnapshot? = nil
+    ) async {
         guard modelState.isReady else {
             errorMessage = AppLanguage.text("先にAIモデルを準備してください。", "Prepare the AI model first.")
             return
@@ -204,6 +226,15 @@ final class DecisionViewModel {
                 maxEdge: 512
             )
             result = newResult
+
+            if let continuousSnapshot {
+                if continuousEnabled {
+                    continuousResultSnapshot = continuousSnapshot
+                }
+                if continuousPendingSnapshot?.id == continuousSnapshot.id {
+                    continuousPendingSnapshot = nil
+                }
+            }
 
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         } catch {

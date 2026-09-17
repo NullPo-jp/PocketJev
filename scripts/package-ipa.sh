@@ -43,6 +43,7 @@ xcodebuild \
   -destination 'generic/platform=iOS' \
   -derivedDataPath "$DERIVED_DATA" \
   "PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID" \
+  "MARKETING_VERSION=$VERSION" \
   CODE_SIGNING_ALLOWED=NO \
   -skipPackagePluginValidation \
   -skipMacroValidation \

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct DecisionResult: Sendable, Equatable {
     let choice: String
@@ -6,6 +7,11 @@ struct DecisionResult: Sendable, Equatable {
     let optionLogits: [String: Double]
     let latencyMS: Double
     let promptTokens: Int
+}
+
+struct ContinuousCaptureSnapshot: Identifiable {
+    let id = UUID()
+    let image: UIImage
 }
 
 struct OptionPreset: Identifiable, Codable, Hashable, Sendable {

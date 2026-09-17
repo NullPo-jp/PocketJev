@@ -6,6 +6,8 @@ struct ContentView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var showingOptionEditor = false
     @State private var showingAbout = false
+    @State private var captureLanded = true
+    @Namespace private var captureNamespace
     @FocusState private var questionFocused: Bool
 
     var body: some View {
@@ -19,7 +21,10 @@ struct ContentView: View {
                     }
                     cameraCard
                     questionCard
-                    optionPickerCard
+                    if !viewModel.continuousEnabled {
+                        optionPickerCard
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     resultCard
                     controlsCard
 
@@ -45,6 +50,18 @@ struct ContentView: View {
                 Task {
                     if let data = try? await newValue.loadTransferable(type: Data.self) {
                         await viewModel.setPhotoData(data)
+                    }
+                }
+            }
+            .onChange(of: viewModel.continuousPendingSnapshot?.id) { _, newValue in
+                guard newValue != nil, viewModel.continuousEnabled else { return }
+                captureLanded = false
+                Task { @MainActor in
+                    // Give SwiftUI one frame with the captured image at viewer
+                    // size, then animate the same view into the result thumbnail.
+                    try? await Task.sleep(for: .milliseconds(70))
+                    withAnimation(.spring(response: 0.48, dampingFraction: 0.86)) {
+                        captureLanded = true
                     }
                 }
             }
@@ -149,7 +166,17 @@ struct ContentView: View {
                         }
                 }
 
-                if viewModel.isAnalyzing {
+                if
+                    viewModel.continuousEnabled,
+                    let snapshot = viewModel.continuousPendingSnapshot,
+                    !captureLanded
+                {
+                    continuousSnapshotView(snapshot.image, compact: false)
+                        .matchedGeometryEffect(id: snapshot.id, in: captureNamespace)
+                        .zIndex(3)
+                }
+
+                if viewModel.isAnalyzing && !viewModel.continuousEnabled {
                     ProgressView(AppLanguage.text("判定中…", "Analyzing…"))
                         .padding(12)
                         .background(.black.opacity(0.7), in: Capsule())
@@ -222,9 +249,26 @@ struct ContentView: View {
         GroupBox {
             if let result = viewModel.result {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .center, spacing: 8) {
                         Text(result.choice)
                             .font(.title2.bold())
+
+                        if viewModel.continuousEnabled {
+                            if let snapshot = viewModel.continuousResultSnapshot {
+                                continuousSnapshotView(snapshot.image, compact: true)
+                                    .matchedGeometryEffect(id: snapshot.id, in: captureNamespace)
+                                    .transition(.opacity)
+                            }
+
+                            if
+                                let snapshot = viewModel.continuousPendingSnapshot,
+                                captureLanded
+                            {
+                                continuousSnapshotView(snapshot.image, compact: true, pending: true)
+                                    .matchedGeometryEffect(id: snapshot.id, in: captureNamespace)
+                            }
+                        }
+
                         Spacer()
                         Text(String(format: "%.0f ms", result.latencyMS))
                             .font(.caption.monospacedDigit())
@@ -253,14 +297,34 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
             } else {
-                Text(AppLanguage.text("まだ判定していません", "No result yet"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 10) {
+                    Text(AppLanguage.text("まだ判定していません", "No result yet"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    if
+                        viewModel.continuousEnabled,
+                        let snapshot = viewModel.continuousPendingSnapshot,
+                        captureLanded
+                    {
+                        continuousSnapshotView(snapshot.image, compact: true, pending: true)
+                            .matchedGeometryEffect(id: snapshot.id, in: captureNamespace)
+                    }
+
+                    Spacer()
+                }
             }
         } label: {
             Label(AppLanguage.text("判定", "Result"), systemImage: "bolt.circle")
         }
+        .animation(
+            .spring(response: 0.42, dampingFraction: 0.86),
+            value: viewModel.continuousResultSnapshot?.id
+        )
+        .animation(
+            .spring(response: 0.42, dampingFraction: 0.86),
+            value: viewModel.continuousPendingSnapshot?.id
+        )
     }
 
     private var controlsCard: some View {
@@ -321,5 +385,37 @@ struct ContentView: View {
     private var isModelLoading: Bool {
         if case .loading = viewModel.modelState { return true }
         return false
+    }
+
+    @ViewBuilder
+    private func continuousSnapshotView(
+        _ image: UIImage,
+        compact: Bool,
+        pending: Bool = false
+    ) -> some View {
+        ZStack {
+            Color.black
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+
+            if compact && pending {
+                ProgressView()
+                    .controlSize(.mini)
+                    .padding(5)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+        }
+        .frame(
+            width: compact ? 60 : nil,
+            height: compact ? 44 : 300
+        )
+        .frame(maxWidth: compact ? 60 : .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: compact ? 7 : 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: compact ? 7 : 18, style: .continuous)
+                .stroke(.secondary.opacity(compact ? 0.35 : 0), lineWidth: 0.5)
+        }
+        .clipped()
     }
 }
