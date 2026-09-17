@@ -1,0 +1,72 @@
+name: PocketJev
+options:
+  minimumXcodeGenVersion: 2.38.0
+  developmentLanguage: en
+  deploymentTarget:
+    iOS: '18.0'
+
+packages:
+  MLXSwiftLM:
+    url: https://github.com/ml-explore/mlx-swift-lm.git
+    revision: c6446cf7bfb7cea76408013b614d4b2c530eaa03
+  MLXSwift:
+    url: https://github.com/ml-explore/mlx-swift.git
+    from: 0.31.6
+  SwiftTransformers:
+    url: https://github.com/huggingface/swift-transformers.git
+    from: 1.3.0
+  SwiftHuggingFace:
+    url: https://github.com/huggingface/swift-huggingface.git
+    from: 0.8.1
+
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    DEVELOPMENT_TEAM: ''
+    CODE_SIGN_STYLE: Automatic
+    IPHONEOS_DEPLOYMENT_TARGET: '18.0'
+    TARGETED_DEVICE_FAMILY: '1'
+
+targets:
+  PocketJev:
+    type: application
+    platform: iOS
+    sources:
+      - PocketJev
+    dependencies:
+      - package: MLXSwiftLM
+        product: MLXVLM
+      - package: MLXSwiftLM
+        product: MLXLMCommon
+      - package: MLXSwiftLM
+        product: MLXHuggingFace
+      - package: MLXSwift
+        product: MLX
+      - package: SwiftTransformers
+        product: Tokenizers
+      - package: SwiftHuggingFace
+        product: HuggingFace
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PocketJev
+        INFOPLIST_FILE: PocketJev/Info.plist
+        CODE_SIGN_ENTITLEMENTS: PocketJev/PocketJev.entitlements
+        MARKETING_VERSION: '0.1.0'
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_EMIT_LOC_STRINGS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      testTargets:
+        - PocketJevTests
+
+  PocketJevTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - PocketJevTests
+    dependencies:
+      - target: PocketJev
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.PocketJev.tests
+        GENERATE_INFOPLIST_FILE: YES

@@ -1,0 +1,25 @@
+.DS_Store
+/IMG_*.PNG
+
+# Local Xcode state / generated project
+PocketJev.xcodeproj/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Build products and logs
+.build/
+.swiftpm/
+build/
+*.log
+
+# Local-only handoff / deployment helpers
+STATE.md
+scripts/deploy.sh
+scripts/deploy.local.sh
+
+# Secrets / local configuration
+*.local
+*.local.*
+.env
+.env.*
