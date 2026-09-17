@@ -52,7 +52,7 @@ targets:
         INFOPLIST_FILE: PocketJev/Info.plist
         CODE_SIGN_ENTITLEMENTS: PocketJev/PocketJev.entitlements
         MARKETING_VERSION: '0.1.0'
-        CURRENT_PROJECT_VERSION: 1
+        CURRENT_PROJECT_VERSION: 3
         SWIFT_EMIT_LOC_STRINGS: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     scheme:
